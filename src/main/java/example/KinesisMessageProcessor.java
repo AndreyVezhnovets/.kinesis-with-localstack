@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 public class KinesisMessageProcessor {
 
   public void processKinesisMessage(String message) {
-    log.info("Message received from the Kinesis stream: " + message);
+    System.out.println(message);
   }
 }

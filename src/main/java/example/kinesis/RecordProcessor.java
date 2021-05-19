@@ -29,12 +29,12 @@ public class RecordProcessor implements IRecordProcessor {
 
   @Override
   public void initialize(InitializationInput initializationInput) {
-    log.info("Initializing RecordProcessor");
+//    log.info("Initializing RecordProcessor");
   }
 
   @Override
   public void processRecords(ProcessRecordsInput processRecordsInput) {
-    log.info(String.format("Processing %d records from Kinesis", processRecordsInput.getRecords().size()));
+//    log.info(String.format("Processing %d records from Kinesis", processRecordsInput.getRecords().size()));
 
     processRecordsInput.getRecords().forEach(this::handleSingleRecord);
     checkpoint(processRecordsInput.getCheckpointer());
@@ -50,16 +50,12 @@ public class RecordProcessor implements IRecordProcessor {
     if (shutdownInput.getShutdownReason() == ShutdownReason.TERMINATE) {
       checkpoint(shutdownInput.getCheckpointer());
     }
-    log.info("Shutting down RecordProcessor");
   }
 
   private void checkpoint(IRecordProcessorCheckpointer checkpointer) {
     try {
       checkpointer.checkpoint();
-    } catch (InvalidStateException e) {
-      log.error("Failed to checkpoint. KCL threw an InvalidStateException", e);
-    } catch (ShutdownException e) {
-      log.error("Failed to checkpoint. The RecordProcessor instance has been shutdown", e);
+    } catch (InvalidStateException | ShutdownException e) {
     }
   }
 }

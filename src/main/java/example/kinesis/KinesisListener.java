@@ -1,18 +1,19 @@
 package example.kinesis;
 
+import com.amazonaws.services.kinesis.AmazonKinesis;
 import com.amazonaws.services.kinesis.clientlibrary.lib.worker.InitialPositionInStream;
 import com.amazonaws.services.kinesis.clientlibrary.lib.worker.KinesisClientLibConfiguration;
 import com.amazonaws.services.kinesis.clientlibrary.lib.worker.Worker;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class KinesisListener implements SmartLifecycle {
 
   @Value("${kinesis.streamName}")
@@ -21,22 +22,15 @@ public class KinesisListener implements SmartLifecycle {
   @Value("${application.name}")
   private String applicationName;
 
+  private final AmazonKinesis amazonKinesis;
   private final AWSConfig awsConfig;
+  private final RecordProcessorFactory recordProcessorFactory;
 
   private Worker worker;
   private Thread workerThread;
 
-  private RecordProcessorFactory recordProcessorFactory;
-
-  @Autowired
-  public KinesisListener(RecordProcessorFactory recordProcessorFactory, AWSConfig awsConfig) {
-    this.recordProcessorFactory = recordProcessorFactory;
-    this.awsConfig = awsConfig;
-  }
-
   @Override
   public void start() {
-    log.info("Starting the worker");
     String workerId = applicationName + UUID.randomUUID();
     final KinesisClientLibConfiguration config = new KinesisClientLibConfiguration(
       applicationName,
@@ -49,7 +43,7 @@ public class KinesisListener implements SmartLifecycle {
     worker = new Worker.Builder()
       .recordProcessorFactory(recordProcessorFactory)
       .config(config)
-      .kinesisClient(awsConfig.kinesisClient())
+      .kinesisClient(amazonKinesis)
       .dynamoDBClient(awsConfig.dynamoDBClient())
       .build();
 
